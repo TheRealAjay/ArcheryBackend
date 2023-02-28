@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using ArcheryBackend.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArcheryBackend;
-public class UsersContext : IdentityUserContext<IdentityUser>
+public class UsersContext : IdentityUserContext<ApplicationUser>
 {
     public UsersContext(DbContextOptions<UsersContext> options) : base(options)
     {

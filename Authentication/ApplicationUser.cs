@@ -17,9 +17,4 @@ public class ApplicationUser : IdentityUser
     public byte[]? ProfilePicture { get; set; }
     
     public List<Archery.ArcheryEvent>? Events { get; set; }
-    
-    // [ForeignKey("Participant")]
-    // public int UserID { get; set; }
-    //
-    // public virtual Participant Participant { get; set; }
 }

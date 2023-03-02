@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices;
 using ArcheryBackend.Authentication;
+using Microsoft.AspNetCore.Identity;
 
 namespace ArcheryBackend.Archery;
 
@@ -22,10 +23,10 @@ public class ArcheryEvent
 
     public TimeOnly Time { get; set; }
 
-    /** HasOne Relation to User */
-    [ForeignKey(name: "ApplicationUser")]
-    public int UserID { get; set; }
-
+    // /** HasOne Relation to User */
+    // [ForeignKey(name: "ApplicationUser")]
+    // public int UserID { get; set; }
+    
     public ApplicationUser? User { get; set; }
 
     /** HasMany Relation to Targets */

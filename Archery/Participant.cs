@@ -15,7 +15,7 @@ public class Participant
 
     public string? NickName { get; set; }
 
-    // public virtual ApplicationUser ApplicationUser { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
 
     /** HasOne Relation to Event */
     [ForeignKey(name: "ArcheryEvent")]

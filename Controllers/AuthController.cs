@@ -1,4 +1,5 @@
 ﻿using ArcheryBackend.Authentication;
+using ArcheryBackend.Request;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

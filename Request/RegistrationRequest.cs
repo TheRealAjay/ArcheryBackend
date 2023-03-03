@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ArcheryBackend.Controllers;
+namespace ArcheryBackend.Request;
 
 public class RegistrationRequest
 {

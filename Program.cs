@@ -1,6 +1,7 @@
 using System.Text;
 using ArcheryBackend;
 using ArcheryBackend.Authentication;
+using ArcheryBackend.Contexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;

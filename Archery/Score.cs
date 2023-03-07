@@ -6,7 +6,8 @@ namespace ArcheryBackend.Archery;
 
 public class Score
 {
-    [Key] public int ID { get; set; }
+    [Key][DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int ID { get; set; }
 
     /** erster, zweiter oder dritter Pfeil */
     public int Position { get; set; }

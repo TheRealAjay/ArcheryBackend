@@ -5,7 +5,7 @@ namespace ArcheryBackend.Archery;
 
 public class Target
 {
-    [Key]
+    [Key][DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ID { get; set; }
 
     public string? Name { get; set; }

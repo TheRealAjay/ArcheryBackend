@@ -6,7 +6,7 @@ namespace ArcheryBackend.Archery;
 
 public class Participant
 {
-    [Key]
+    [Key][DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ID { get; set; }
 
     public string? FirstName { get; set; }

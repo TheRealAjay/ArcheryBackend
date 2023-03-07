@@ -11,10 +11,10 @@ namespace ArcheryBackend.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly UsersContext _context;
+    private readonly ArcheryContext _context;
     private readonly TokenService _tokenService;
 
-    public AuthController(UserManager<ApplicationUser> userManager, UsersContext context, TokenService tokenService)
+    public AuthController(UserManager<ApplicationUser> userManager, ArcheryContext context, TokenService tokenService)
     {
         _userManager = userManager;
         _context = context;
@@ -31,7 +31,11 @@ public class AuthController : ControllerBase
         }
 
         var result = await _userManager.CreateAsync(
-            new ApplicationUser() { UserName = request.Username, Email = request.Email, FirstName = request.FirstName, LastName = request.LastName},
+            new ApplicationUser()
+            {
+                UserName = request.Username, Email = request.Email, FirstName = request.FirstName,
+                LastName = request.LastName
+            },
             request.Password
         );
 

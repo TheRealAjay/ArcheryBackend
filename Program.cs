@@ -9,7 +9,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<UsersContext>();
+builder.Services.AddDbContext<ArcheryContext>();
 builder.Services.AddScoped<TokenService, TokenService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -69,7 +69,7 @@ builder.Services
         options.Password.RequireUppercase = false;
         options.Password.RequireLowercase = false;
     })
-    .AddEntityFrameworkStores<UsersContext>();
+    .AddEntityFrameworkStores<ArcheryContext>();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.

@@ -8,9 +8,10 @@ namespace ArcheryBackend.Archery;
 
 public class ArcheryEvent
 {
-    [Key][DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ID { get; set; }
-    
+
     public string? Name { get; set; }
 
     public string? Street { get; set; }
@@ -26,7 +27,7 @@ public class ArcheryEvent
     // /** HasOne Relation to User */
     // [ForeignKey(name: "ApplicationUser")]
     // public int UserID { get; set; }
-    
+
     public ApplicationUser? User { get; set; }
 
     /** HasMany Relation to Targets */

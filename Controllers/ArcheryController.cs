@@ -11,7 +11,7 @@ namespace ArcheryBackend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ArcheryController : ControllerBase
+public class ArcheryController : Controller
 {
     private readonly ILogger<ArcheryController> _logger;
     private readonly ArcheryContext _context;
@@ -27,7 +27,8 @@ public class ArcheryController : ControllerBase
         _tokenService = tokenService;
     }
 
-    [HttpPut(Name = "CreateNewEvent"), Authorize]
+    [HttpPut, Authorize]
+    [Route("createEvent")]
     public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request)
     {
         var managedUser = await _userManager.FindByEmailAsync(request.UserEmail);
@@ -59,7 +60,8 @@ public class ArcheryController : ControllerBase
         });
     }
 
-    [HttpPut(Name = "AddTargetToEvent"), Authorize]
+    [HttpPut, Authorize]
+    [Route("addTarget")]
     public async Task<ActionResult<EventResponse>> AddTargetToEvent(AddTargetToEventRequest request)
     {
         var managedEvent = await _context.Events.FindAsync(request.EventID);

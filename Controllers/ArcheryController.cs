@@ -1,6 +1,7 @@
 ﻿using ArcheryBackend.Archery;
 using ArcheryBackend.Authentication;
 using ArcheryBackend.Contexts;
+using ArcheryBackend.ControllerHelper;
 using ArcheryBackend.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -32,7 +33,7 @@ public class ArcheryController : ControllerBase
         var managedUser = await _userManager.FindByEmailAsync(request.UserEmail);
         if (managedUser == null)
         {
-            return BadRequest("Bad credentials");
+            return BadRequest("User not found");
         }
 
         ArcheryEvent aEvent = new ArcheryEvent()
@@ -55,6 +56,32 @@ public class ArcheryController : ControllerBase
         {
             EventName = aEvent.Name ?? "",
             EventID = aEvent.ID
+        });
+    }
+
+    [HttpPut(Name = "AddTargetToEvent"), Authorize]
+    public async Task<ActionResult<EventResponse>> AddTargetToEvent(AddTargetToEventRequest request)
+    {
+        var managedEvent = await _context.Events.FindAsync(request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("Event not found");
+        }
+
+        Target target = new Target()
+        {
+            Name = request.Name,
+            Event = managedEvent,
+        };
+
+        _context.Targets.Attach(target);
+        await _context.SaveChangesAsync();
+
+        return Ok(new TargetResponse()
+        {
+            TargetName = target.Name ?? "",
+            TargetID = target.ID,
+            EventID = request.EventID
         });
     }
 }

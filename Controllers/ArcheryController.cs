@@ -62,7 +62,7 @@ public class ArcheryController : Controller
 
     [HttpPut, Authorize]
     [Route("addTarget")]
-    public async Task<ActionResult<EventResponse>> AddTargetToEvent(AddTargetToEventRequest request)
+    public async Task<ActionResult<TargetResponse>> AddTargetToEvent(AddTargetToEventRequest request)
     {
         var managedEvent = await _context.Events.FindAsync(request.EventID);
         if (managedEvent == null)

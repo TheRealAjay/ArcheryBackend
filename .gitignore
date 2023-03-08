@@ -5,3 +5,5 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea
 /Migrations/
+.vs/
+ArcheryBackend.csproj.user

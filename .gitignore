@@ -8,3 +8,5 @@ riderModule.iml
 /Migrations/
 .vs/
 ArcheryBackend.csproj.user
+appsettings.Development.json
+appsettings.json

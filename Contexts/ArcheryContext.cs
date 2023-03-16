@@ -22,6 +22,6 @@ public class ArcheryContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         // connect to postgres with connection string from app settings
-        options.UseNpgsql("Host=localhost;Database=postgres;Username=postgres;Password=xs5a3p");
+        options.UseNpgsql(Configuration["DBConnectionString"] ?? string.Empty);
     }
 }

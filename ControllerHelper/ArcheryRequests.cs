@@ -3,6 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace ArcheryBackend.Request;
 
+public class UserByEmailRequest
+{
+    [Required] public string Email { get; set; } = null!;
+}
+
 public class CreateEventRequest
 {
     [Required] public string Name { get; set; } = null!;

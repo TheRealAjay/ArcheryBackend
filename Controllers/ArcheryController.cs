@@ -27,9 +27,10 @@ public class ArcheryController : Controller
         _tokenService = tokenService;
     }
 
+    //Vorlage für meine Funktion
     [HttpPut, Authorize]
     [Route("createEvent")]
-    public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request)
+    public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request )//request.email
     {
         var managedUser = await _userManager.FindByEmailAsync(request.UserEmail);
         if (managedUser == null)
@@ -59,6 +60,91 @@ public class ArcheryController : Controller
             EventID = aEvent.ID
         });
     }
+
+
+
+    /*
+    //Anmerkungen
+    //get userbyEmail (request request.email )
+    //{
+    // UserResponse return so:
+//    return Ok(new EventResponse
+//        {
+//            EventName = aEvent.Name ?? "",
+//            EventID = aEvent.ID
+//});
+//HIer muss die Liste drinnen stehen:  List<Dict> (Id, username)
+Request und response schreiben. Das sind zwei Klassen die ich selbst aufbauen muss.
+    in ControllerHelper sind HelperKlassen 
+    ArcheryResponse
+    ArcheryRequest
+    kann ich als Vorlage nehmen.
+    Vorlage:
+    public class CreateEventRequest
+{
+    [Required] public string Name { get; set; } = null!;
+    [Required] public string Street { get; set; } = null!;
+    [Required] public string Zip { get; set; } = null!;
+    [Required] public string City { get; set; } = null!;
+    [Required] public string Date { get; set; } = null!;
+    [Required] public string Time { get; set; } = null!;
+    [Required] public string UserEmail { get; set; } = null!;
+}
+    Bei userByEmailRequest bekomme ich eine E-Mail zurück.
+
+    public class UserByEmailRequest
+    {
+      [Required] public string email { get; set; } = null!;
+    }
+    
+
+
+    //} 
+
+    Test
+
+    kein eventresponse
+    kein tablersponse
+
+    [HttpPut, Authorize]
+    [Route("createEvent")]
+    public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request )//request.email
+    {
+        var managedUser = await _userManager.FindByEmailAsync(request.UserEmail);
+        if (managedUser == null)
+        {
+            return BadRequest("User not found");
+        }
+
+        ArcheryEvent aEvent = new ArcheryEvent()
+        {
+            Name = request.Name,
+            Street = request.Street,
+            City = request.City,
+            Zip = request.Zip,
+            Date = DateOnly.Parse(request.Date),
+            Time = TimeOnly.Parse(request.Time),
+            User = managedUser,
+            // Participants = new List<Participant>(),
+            // Targets = new List<Target>(),
+        };
+
+        _context.Events.Attach(aEvent);
+        await _context.SaveChangesAsync();
+
+        return Ok(new EventResponse
+        {
+            EventName = aEvent.Name ?? "",
+            EventID = aEvent.ID
+        });
+    }
+
+
+    */
+
+
+
+
 
     [HttpPut, Authorize]
     [Route("addTarget")]

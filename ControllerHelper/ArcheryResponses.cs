@@ -1,4 +1,6 @@
-﻿namespace ArcheryBackend.ControllerHelper;
+﻿using System.Collections.Specialized;
+
+namespace ArcheryBackend.ControllerHelper;
 
 public class EventResponse
 {
@@ -22,4 +24,9 @@ public class ParticipantResponse
     public int TargetID { get; set; }
     
     public int EventID { get; set; }
+}
+
+public class UserResponse
+{
+    public List<Dictionary<int, string>> UserList { get; set; }
 }

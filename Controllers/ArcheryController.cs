@@ -91,7 +91,7 @@ public class ArcheryController : Controller
     }
 
 
-    [HttpPut, Authorize]
+    [HttpGet, Authorize]
     [Route("getUsersByEmail")]
     public async Task<ActionResult<UserListResponse>> GetUsersByEmail(GetUserByEmailRequest request)
     {
@@ -110,7 +110,7 @@ public class ArcheryController : Controller
         });
     }
 
-    [HttpPut, Authorize]
+    [HttpGet, Authorize]
     [Route("getUsersByName")]
     public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByNameRequest request)
     {
@@ -131,6 +131,28 @@ public class ArcheryController : Controller
         return Ok(new UserListResponse()
         {
             Users = returnUsers
+        });
+    }
+    
+    [HttpGet]
+    [Route("getIfUserExists")]
+    public async Task<ActionResult<BooleanResponse>> GetIfUserExists(GetUserByEmailRequest request)
+    {
+        // var user = from u in _context.Users where u.Email.Contains(request.Email) select u;
+        var user = _context.Users.Include(u => u.Email)
+            .SingleOrDefault(u => u.Email == request.Email);
+
+        if (user != null)
+        {
+            return Ok(new BooleanResponse()
+            {
+                Boolean = true
+            });
+        }
+
+        return Ok(new BooleanResponse()
+        {
+            Boolean = false
         });
     }
 }

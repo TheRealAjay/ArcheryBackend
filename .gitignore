@@ -10,3 +10,7 @@ riderModule.iml
 ArcheryBackend.csproj.user
 appsettings.Development.json
 appsettings.json
+.idea/config/applicationhost.config
+%USERPROFILE%/.aspnet/https/aspnetapp.pfx
+.idea/config/applicationhost.config
+.idea/config/applicationhost.config

@@ -1,4 +1,6 @@
-﻿namespace ArcheryBackend.ControllerHelper;
+﻿using ArcheryBackend.Authentication;
+
+namespace ArcheryBackend.ControllerHelper;
 
 public class EventResponse
 {
@@ -22,4 +24,14 @@ public class ParticipantResponse
     public int TargetID { get; set; }
     
     public int EventID { get; set; }
+}
+
+public class UserListResponse
+{
+    public Dictionary<string, string> Users { get; set; }
+}
+
+public class BooleanResponse
+{
+    public bool Boolean { get; set; }
 }

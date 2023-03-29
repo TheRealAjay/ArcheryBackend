@@ -1,4 +1,6 @@
-﻿using ArcheryBackend.Archery;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using ArcheryBackend.Archery;
 using ArcheryBackend.Authentication;
 using ArcheryBackend.Contexts;
 using ArcheryBackend.ControllerHelper;
@@ -6,6 +8,7 @@ using ArcheryBackend.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArcheryBackend.Controllers;
 
@@ -84,6 +87,50 @@ public class ArcheryController : Controller
             TargetName = target.Name ?? "",
             TargetID = target.ID,
             EventID = request.EventID
+        });
+    }
+
+
+    [HttpPut, Authorize]
+    [Route("getUsersByEmail")]
+    public async Task<ActionResult<UserListResponse>> GetUsersByEmail(GetUserByEmailRequest request)
+    {
+        var users = from u in _context.Users where u.Email.Contains(request.Email) select u;
+
+        Dictionary<string, string> returnUsers = new Dictionary<string, string>();
+
+        foreach (var user in users)
+        {
+            returnUsers.Add(user.Id, user.UserName ?? "");
+        }
+
+        return Ok(new UserListResponse()
+        {
+            Users = returnUsers
+        });
+    }
+
+    [HttpPut, Authorize]
+    [Route("getUsersByName")]
+    public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByNameRequest request)
+    {
+        var participants = (await _context.Events.FindAsync(request.EventID))?.Participants;
+
+        Dictionary<string, string> returnUsers = new Dictionary<string, string>();
+
+        if (participants != null)
+        {
+            foreach (var user in participants)
+            {
+                if (user.NickName != null && user.ApplicationUser != null)
+                    returnUsers.Add(user.NickName, user.ApplicationUser.Id ?? "");
+            }
+        }
+
+
+        return Ok(new UserListResponse()
+        {
+            Users = returnUsers
         });
     }
 }

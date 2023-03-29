@@ -29,10 +29,21 @@ public class AddParticipantToEventRequest
     public string UserEmail { get; set; } = null!;
 }
 
-public class AddScoreToParticipant
+public class AddScoreToParticipantRequest
 {
     [Required] public int Position { get; set; }
     [Required] public int Value { get; set; }
     [Required] public int ParticipantID { get; set; }
     [Required] public int TargetID { get; set; }
+}
+
+public class GetUserByEmailRequest
+{
+    [Required] public string Email { get; set; }
+}
+
+public class GetUserByNameRequest
+{
+    [Required] public string Name { get; set; }
+    [Required] public int EventID { get; set; }
 }

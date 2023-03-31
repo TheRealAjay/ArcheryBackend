@@ -30,6 +30,8 @@ public class ArcheryController : Controller
         _tokenService = tokenService;
     }
 
+    #region EventSpecificEndpoitns
+
     [HttpPut, Authorize]
     [Route("createEvent")]
     public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request)
@@ -90,10 +92,69 @@ public class ArcheryController : Controller
         });
     }
 
+    [HttpPut, Authorize]
+    [Route("addParticipant")]
+    public async Task<ActionResult<ParticipantResponse>> AddParticipant(AddParticipantToEventRequest request)
+    {
+        var managedEvent = await _context.Events.FindAsync(request.EventID);
+
+        if (managedEvent == null)
+            return BadRequest("Event not found");
+
+        var localNickName = request.Nickname;
+        var localFirstName = request.FirstName;
+        var localLastName = request.LastName;
+
+        if (request.UserEmail != null)
+        {
+            var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.UserEmail);
+            if (managedUser != null)
+                localNickName = managedUser.UserName;
+        }
+
+        var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == localNickName);
+        bool newParticipant = false;
+
+        if (managedParticipant == null)
+        {
+            managedParticipant = new Participant()
+            {
+                NickName = localNickName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+            };
+            newParticipant = true;
+            
+        }
+        
+        managedParticipant.Events.Add(managedEvent);
+        
+        if (newParticipant)
+        {
+            _context.Participants.Add(managedParticipant);
+        }
+        else
+        {
+            _context.Participants.Update(managedParticipant);
+        }
+        
+        await _context.SaveChangesAsync();
+
+        return Ok(new ParticipantResponse()
+        {
+            NickName = managedParticipant.NickName ?? "",
+            IsNewParticipant = newParticipant,
+            FirstName = localFirstName,
+            LastName = localLastName,
+            EventID = managedEvent.ID
+        });
+    }
+
+    #endregion
 
     [HttpPost, Authorize]
     [Route("getUsersByEmail")]
-    public async Task<ActionResult<UserListResponse>> GetUsersByEmail(GetUserByEmailRequest request)
+    public async Task<ActionResult<UserListResponse>> GetUsersByEmail(GetUserInfoRequest request)
     {
         var users = from u in _context.Users where u.Email.Contains(request.Email) select u;
 
@@ -112,7 +173,7 @@ public class ArcheryController : Controller
 
     [HttpPost, Authorize]
     [Route("getUsersByName")]
-    public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByNameRequest request)
+    public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByEventAndNickRequest request)
     {
         var participants = (await _context.Events.FindAsync(request.EventID))?.Participants;
 
@@ -133,26 +194,32 @@ public class ArcheryController : Controller
             Users = returnUsers
         });
     }
-    
-    [HttpPost]
-    [Route("getIfUserExists")]
-    public async Task<ActionResult<BooleanResponse>> GetIfUserExists(GetUserByEmailRequest request)
-    {
 
-        // var user = from u in _context.Users where u.Email.Contains(request.Email) select u;
-        var user = _context.Users.SingleOrDefault(u => u.Email == request.Email);
+    [HttpPost]
+    [Route("getUserInfo")]
+    public async Task<ActionResult<BooleanResponse>> GetIfUserExists(GetUserInfoRequest request)
+    {
+        bool returnVal = false;
+        var user = new IdentityUser();
+
+        if (request.Email != "")
+        {
+            user = _context.Users.SingleOrDefault(u => u.Email == request.Email);
+        }
+
+        if (request.Nickname != "")
+        {
+            user = _context.Users.SingleOrDefault(u => u.UserName == request.Nickname);
+        }
 
         if (user != null)
         {
-            return Ok(new BooleanResponse()
-            {
-                Boolean = true
-            });
+            returnVal = true;
         }
 
         return Ok(new BooleanResponse()
         {
-            Boolean = false
+            Boolean = returnVal
         });
     }
 }

@@ -26,7 +26,7 @@ public class AddParticipantToEventRequest
     [Required] public string LastName { get; set; } = null!;
     [Required] public string Nickname { get; set; } = null!;
     [Required] public int EventID { get; set; }
-    public string UserEmail { get; set; } = null!;
+    public string? UserEmail { get; set; } = null;
 }
 
 public class AddScoreToParticipantRequest
@@ -37,12 +37,13 @@ public class AddScoreToParticipantRequest
     [Required] public int TargetID { get; set; }
 }
 
-public class GetUserByEmailRequest
+public class GetUserInfoRequest
 {
-    [Required] public string Email { get; set; }
+    public string Email { get; set; }
+    public string Nickname { get; set; }
 }
 
-public class GetUserByNameRequest
+public class GetUserByEventAndNickRequest
 {
     [Required] public string Name { get; set; }
     [Required] public int EventID { get; set; }

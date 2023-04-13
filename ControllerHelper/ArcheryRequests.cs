@@ -14,6 +14,13 @@ public class CreateEventRequest
     [Required] public string UserEmail { get; set; } = null!;
 }
 
+public class GetEventsRequest
+{
+    [Required] public string UserEmail { get; set; } = null!;
+
+    public bool OldData { get; set; } = false;
+}
+
 public class AddTargetToEventRequest
 {
     [Required] public string Name { get; set; } = null!;

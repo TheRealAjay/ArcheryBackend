@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml;
 using ArcheryBackend.Archery;
 using ArcheryBackend.Authentication;
 using ArcheryBackend.Contexts;
@@ -124,11 +126,10 @@ public class ArcheryController : Controller
                 LastName = request.LastName,
             };
             newParticipant = true;
-            
         }
-        
+
         managedParticipant.Events.Add(managedEvent);
-        
+
         if (newParticipant)
         {
             _context.Participants.Add(managedParticipant);
@@ -137,7 +138,7 @@ public class ArcheryController : Controller
         {
             _context.Participants.Update(managedParticipant);
         }
-        
+
         await _context.SaveChangesAsync();
 
         return Ok(new ParticipantResponse()
@@ -147,6 +148,47 @@ public class ArcheryController : Controller
             FirstName = localFirstName,
             LastName = localLastName,
             EventID = managedEvent.ID
+        });
+    }
+
+    [HttpPost, Authorize]
+    [Route("getAllEvents")]
+    public async Task<ActionResult<EventsResponse>> GetUpcomingEvents(GetEventsRequest request)
+    {
+        var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.UserEmail);
+        if (managedUser == null)
+        {
+            return BadRequest("Event not found");
+        }
+
+        int dayNumber = DateOnly.FromDateTime(DateTime.Now).DayNumber;
+        var events = _context.Events.Where((e) => e.User.Id == managedUser.Id).OrderBy(e => e.Date);
+        var list = new List<EventResponse>();
+
+        foreach (var ev in events)
+        {
+            if (ev.Date.DayNumber < dayNumber && request.OldData == false)
+                continue;
+            
+            if (ev.Date.DayNumber >= dayNumber && request.OldData)
+                continue;
+            
+            EventResponse listItem = new EventResponse
+            {
+                EventID = ev.ID,
+                IsActiveEvent = ev.Date.DayNumber == dayNumber,
+                EventName = ev.Name,
+                EventDesc = "None",
+                FormattedDate = ev.Date.Day + "." + ev.Date.Month + "." + ev.Date.Year,
+                FormattedTime = ev.Time.ToString()
+            };
+
+            list.Add(listItem);
+        }
+
+        return Ok(new EventsResponse()
+        {
+            Events = list
         });
     }
 

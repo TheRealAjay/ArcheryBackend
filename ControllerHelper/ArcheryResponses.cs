@@ -5,7 +5,16 @@ namespace ArcheryBackend.ControllerHelper;
 public class EventResponse
 {
     public string EventName { get; set; } = null!;
+    public string EventDesc { get; set; } = null!;
+    public string FormattedDate { get; set; } = null!;
+    public string FormattedTime { get; set; } = null!;
+    public bool IsActiveEvent { get; set; } = false;
     public int EventID { get; set; }
+}
+
+public class EventsResponse
+{
+    public List<EventResponse> Events { get; set; }
 }
 
 public class TargetResponse

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
+using ArcheryBackend.Archery;
 
 namespace ArcheryBackend.Request;
 
@@ -24,27 +25,25 @@ public class GetEventsRequest
 
 public class AddTargetToEventRequest
 {
-    [Required] public string Name { get; set; } = null!;
     [Required] public int EventID { get; set; }
+
+    [Required] public Dictionary<int, string> Targets { get; set; }
 }
 
-public class AddParticipantToEventRequest
+public class ParticipantRequest
 {
     [Required] public string FirstName { get; set; } = null!;
     [Required] public string LastName { get; set; } = null!;
     [Required] public string Nickname { get; set; } = null!;
-    [Required] public int EventID { get; set; }
     public string? UserEmail { get; set; } = null;
 }
 
-public class AddScoreToParticipantRequest
+public class AddParticipantToEventRequest
 {
-    [Required] public int Position { get; set; }
-    [Required] public int Value { get; set; }
-    [Required] public int ParticipantID { get; set; }
-    [Required] public int TargetID { get; set; }
-}
+    [Required] public int EventID { get; set; } 
 
+    public List<ParticipantRequest> Participants { get; set; }
+}
 public class GetUserInfoRequest
 {
     public string Email { get; set; }
@@ -55,4 +54,12 @@ public class GetUserByEventAndNickRequest
 {
     [Required] public string Name { get; set; }
     [Required] public int EventID { get; set; }
+}
+
+public class AddScoreRequest
+{
+    [Required] public int TargetID { get; set; }
+    [Required] public int ParticipantID { get; set; }
+    [Required] public int Value { get; set; }
+    [Required] public int Position { get; set; }
 }

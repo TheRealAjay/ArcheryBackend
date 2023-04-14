@@ -32,8 +32,6 @@ public class ArcheryController : Controller
         _tokenService = tokenService;
     }
 
-    #region EventSpecificEndpoitns
-
     [HttpPut, Authorize]
     [Route("createEvent")]
     public async Task<ActionResult<EventResponse>> CreateNewEvent(CreateEventRequest request)
@@ -69,8 +67,8 @@ public class ArcheryController : Controller
     }
 
     [HttpPut, Authorize]
-    [Route("addTarget")]
-    public async Task<ActionResult<TargetResponse>> AddTargetToEvent(AddTargetToEventRequest request)
+    [Route("addTargets")]
+    public async Task<ActionResult<BooleanResponse>> AddTargetsToEvent(AddTargetToEventRequest request)
     {
         var managedEvent = await _context.Events.FindAsync(request.EventID);
         if (managedEvent == null)
@@ -78,20 +76,21 @@ public class ArcheryController : Controller
             return BadRequest("Event not found");
         }
 
-        Target target = new Target()
+        foreach (var t in request.Targets)
         {
-            Name = request.Name,
-            Event = managedEvent,
-        };
+            Target target = new Target()
+            {
+                Name = t.Value,
+                EventID = t.Key,
+            };
 
-        _context.Targets.Attach(target);
-        await _context.SaveChangesAsync();
+            _context.Targets.Attach(target);
+            await _context.SaveChangesAsync();
+        }
 
-        return Ok(new TargetResponse()
+        return Ok(new BooleanResponse()
         {
-            TargetName = target.Name ?? "",
-            TargetID = target.ID,
-            EventID = request.EventID
+            Boolean = true
         });
     }
 
@@ -104,53 +103,82 @@ public class ArcheryController : Controller
         if (managedEvent == null)
             return BadRequest("Event not found");
 
-        var localNickName = request.Nickname;
-        var localFirstName = request.FirstName;
-        var localLastName = request.LastName;
-
-        if (request.UserEmail != null)
+        foreach (var participant in request.Participants)
         {
-            var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.UserEmail);
-            if (managedUser != null)
-                localNickName = managedUser.UserName;
+            var localNickName = participant.Nickname;
+            var localFirstName = participant.FirstName;
+            var localLastName = participant.LastName;
+
+            if (participant.UserEmail != null)
+            {
+                var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == participant.UserEmail);
+                if (managedUser != null)
+                    localNickName = managedUser.UserName;
+            }
+
+            var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == localNickName);
+            bool newParticipant = false;
+
+            if (managedParticipant == null)
+            {
+                managedParticipant = new Participant()
+                {
+                    NickName = localNickName,
+                    FirstName = localFirstName,
+                    LastName = localLastName,
+                };
+                newParticipant = true;
+            }
+
+            managedParticipant.Events.Add(managedEvent);
+
+            if (newParticipant)
+            {
+                _context.Participants.Add(managedParticipant);
+            }
+            else
+            {
+                _context.Participants.Update(managedParticipant);
+            }
+
+            await _context.SaveChangesAsync();
         }
 
-        var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == localNickName);
-        bool newParticipant = false;
+        return Ok(
+            new ParticipantResponse()
+            {
+                EventID = managedEvent.ID
+            }
+        );
+    }
 
+    [HttpPut, Authorize]
+    [Route("addScore")]
+    public async Task<ActionResult<BooleanResponse>> AddScore(AddScoreRequest request)
+    {
+        var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.ID == request.ParticipantID);
         if (managedParticipant == null)
         {
-            managedParticipant = new Participant()
-            {
-                NickName = localNickName,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-            };
-            newParticipant = true;
+            return BadRequest("Participant not found");
         }
 
-        managedParticipant.Events.Add(managedEvent);
-
-        if (newParticipant)
+        Score score = new Score()
         {
-            _context.Participants.Add(managedParticipant);
-        }
-        else
-        {
-            _context.Participants.Update(managedParticipant);
-        }
+            Participant = managedParticipant,
+            TargetID = request.TargetID,
+            Value = request.Value,
+            Position = request.Position
+        };
 
-        await _context.SaveChangesAsync();
+        _context.Scores.Add(score);
 
-        return Ok(new ParticipantResponse()
+        return Ok(new BooleanResponse()
         {
-            NickName = managedParticipant.NickName ?? "",
-            IsNewParticipant = newParticipant,
-            FirstName = localFirstName,
-            LastName = localLastName,
-            EventID = managedEvent.ID
+            Boolean = true
         });
     }
+    
+    // public async Task<>
 
     [HttpPost, Authorize]
     [Route("getAllEvents")]
@@ -159,7 +187,7 @@ public class ArcheryController : Controller
         var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.UserEmail);
         if (managedUser == null)
         {
-            return BadRequest("Event not found");
+            return BadRequest("User not found");
         }
 
         int dayNumber = DateOnly.FromDateTime(DateTime.Now).DayNumber;
@@ -192,8 +220,6 @@ public class ArcheryController : Controller
             Events = list
         });
     }
-
-    #endregion
 
     [HttpPost, Authorize]
     [Route("getUsersByEmail")]

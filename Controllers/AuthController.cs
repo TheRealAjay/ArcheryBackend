@@ -113,7 +113,7 @@ public class AuthController : ControllerBase
         {
             Username = userInDb.UserName ?? "",
             Email = userInDb.Email ?? "",
-            Base64String = userInDb.Base64Picture,
+            Base64String = "data:image/svg+xml;base64," + userInDb.Base64Picture,
             Token = accessToken,
         });
     }

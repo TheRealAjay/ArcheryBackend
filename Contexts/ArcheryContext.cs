@@ -1,4 +1,5 @@
 ﻿using ArcheryBackend.Archery;
+using ArcheryBackend.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +13,7 @@ public class ArcheryContext : DbContext
     public DbSet<Participant> Participants { get; set; }
     public DbSet<Score> Scores { get; set; }
     public DbSet<Target> Targets { get; set; }
-    public DbSet<IdentityUser> Users { get; set; }
-
+    public DbSet<ApplicationUser> Users { get; set; }
     public ArcheryContext(IConfiguration configuration)
     {
         Configuration = configuration;

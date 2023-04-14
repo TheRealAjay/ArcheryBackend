@@ -24,6 +24,8 @@ public class ArcheryEvent
 
     public TimeOnly Time { get; set; }
 
+    public int ArrowValue { get; set; }
+
     // /** HasOne Relation to User */
     // [ForeignKey(name: "ApplicationUser")]
     // public int UserID { get; set; }

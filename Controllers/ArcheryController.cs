@@ -53,6 +53,7 @@ public class ArcheryController : Controller
             Date = DateOnly.Parse(request.Date),
             Time = TimeOnly.Parse(request.Time),
             User = managedUser,
+            ArrowValue = request.ArrowValue
             // Participants = new List<Participant>(),
             // Targets = new List<Target>(),
         };
@@ -169,10 +170,10 @@ public class ArcheryController : Controller
         {
             if (ev.Date.DayNumber < dayNumber && request.OldData == false)
                 continue;
-            
+
             if (ev.Date.DayNumber >= dayNumber && request.OldData)
                 continue;
-            
+
             EventResponse listItem = new EventResponse
             {
                 EventID = ev.ID,

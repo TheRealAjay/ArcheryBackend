@@ -1,4 +1,6 @@
-﻿using ArcheryBackend.Authentication;
+﻿using System.Net;
+using System.Text;
+using ArcheryBackend.Authentication;
 using ArcheryBackend.Contexts;
 using ArcheryBackend.Request;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +23,19 @@ public class AuthController : ControllerBase
         _tokenService = tokenService;
     }
 
+    private static string ConvertToBase64(Stream stream)
+    {
+        byte[] bytes;
+        using (var memoryStream = new MemoryStream())
+        {
+            stream.CopyTo(memoryStream);
+            bytes = memoryStream.ToArray();
+        }
+
+        string base64 = Convert.ToBase64String(bytes);
+        return base64;
+    }
+
     [HttpPost]
     [Route("register")]
     public async Task<IActionResult> Register(RegistrationRequest request)
@@ -30,11 +45,26 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
+        string base64String = "";
+        using (HttpClient client = new HttpClient())
+        {
+            var name = request.FirstName + " " + request.LastName;
+            var random = new Random();
+            var color1 = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9";
+            var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
+            var color3 = String.Format("#{0:X6}", random.Next(0x1000000));
+            string requestURI = "https://source.boringavatars.com/beam/120/" + name + "?colors=" + color1 + "," +
+                                color2 + "," + color3 + "";
+
+            var stream = client.GetStreamAsync(requestURI);
+            base64String = ConvertToBase64(stream.Result);
+        }
+
         var result = await _userManager.CreateAsync(
             new ApplicationUser()
             {
                 UserName = request.Username, Email = request.Email, FirstName = request.FirstName,
-                LastName = request.LastName
+                LastName = request.LastName, Base64Picture = base64String,
             },
             request.Password
         );
@@ -83,6 +113,7 @@ public class AuthController : ControllerBase
         {
             Username = userInDb.UserName ?? "",
             Email = userInDb.Email ?? "",
+            Base64String = userInDb.Base64Picture,
             Token = accessToken,
         });
     }

@@ -244,24 +244,23 @@ public class ArcheryController : Controller
 
         var responses = new List<ScorePerUserResponse>();
 
-        foreach (var participant in managedEvent.ArcheryEventParticipant)
-        {
-            var scoresForTarget = _context.Scores.Where(s =>
-                s.ParticipantID == participant.ID && s.Target!.EventID == managedEvent.ID);
+        var connections = _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID).ToList();
 
-            var participantScores = scoresForTarget.Where(s => s.ParticipantID == participant.ID);
+        foreach (var connection in connections)
+        {
+            var participantScores = _context.Scores.Where(s =>
+                s.ParticipantID == connection.ParticipantID && s.Target!.EventID == managedEvent.ID).ToList();
+
             var allScore = participantScores.Sum(s => s.Value);
-            Console.WriteLine(participant.Participant.NickName);
-            Console.WriteLine(allScore);
-            Console.WriteLine("------");
+            var participant = await _context.Participants.FindAsync(connection.ParticipantID);
             var response = new ScorePerUserResponse()
             {
-                UserID = participant.ID,
-                UserName = participant.Participant.NickName ?? "default",
+                UserID = connection.ParticipantID,
+                UserName = connection.Participant.NickName ?? "default",
                 Value = allScore,
-                Base64Picture = participant.Participant.ApplicationUser?.Base64Picture ??
-                                getProfilePicture(participant.Participant.FirstName!,
-                                    participant.Participant.LastName!),
+                Base64Picture = connection.Participant.ApplicationUser?.Base64Picture ??
+                                getProfilePicture(connection.Participant.FirstName!,
+                                    connection.Participant.LastName!),
             };
             responses.Add(response);
         }
@@ -275,29 +274,27 @@ public class ArcheryController : Controller
 
         return Ok(new ScoresResponse()
         {
-            Scores = responses
+            Scores = responses.OrderByDescending(r => r.Value).ToList()
         });
     }
 
-    private int getPlayerPosition(ArcheryEvent managedEvent, int participantID)
+    private int GetPlayerPosition(ArcheryEvent managedEvent, int participantId)
     {
         var responses = new Dictionary<int, int>();
 
 
-        foreach (var participant in managedEvent.ArcheryEventParticipant)
+        foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID).ToList())
         {
             var scoresForTarget = _context.Scores.Where(s =>
-                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID);
-
-            var participantScores = scoresForTarget.Where(s => s.ParticipantID == participant.ID);
-            var allScore = participantScores.Sum(s => s.Value);
+                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID).ToList();
+            var allScore = scoresForTarget.Sum(s => s.Value);
             responses.Add(participant.ID, allScore);
         }
 
         int i = 1;
         foreach (var response in responses.OrderByDescending(r => r.Value))
         {
-            if (response.Key == participantID) return i;
+            if (response.Key == participantId) return i;
             i++;
         }
 
@@ -320,33 +317,35 @@ public class ArcheryController : Controller
             return BadRequest("No Participant found");
         }
 
-        var result = new IndividualScoreResponse();
+        var position = GetPlayerPosition(managedEvent, participant.ID);
+        var result = new IndividualScoreResponse()
+        {
+            Place = position,
+            EventID = managedEvent.ID,
+            UserID = participant.ID,
+            ArrowScores = new List<ScorePerArrowResponse>()
+        };
+
+        var targets = _context.Targets.Where(t => t.EventID == managedEvent.ID).OrderBy(t => t.ID).ToList();
 
         int i = 1;
-        foreach (var target in _context.Targets.Where(t => t.EventID == managedEvent.ID).OrderBy(t => t.ID))
+        foreach (var target in targets)
         {
-            var scoreForTarget = _context.Scores.SingleOrDefaultAsync(s =>
+            var scoreForTarget = await _context.Scores.SingleOrDefaultAsync(s =>
                 s.TargetID == target.ID && s.Participant.NickName == request.ParticipantName);
 
-            if (scoreForTarget.Result == null) continue;
+            if (scoreForTarget == null) continue;
 
             var maxValue = 20; //TODO: maybe change this to pfeilwertung idk man I don't care
-            var arrowScore = new ScorePerArrowResponse()
+
+            result.ArrowScores.Add(new ScorePerArrowResponse()
             {
-                Value = scoreForTarget.Result.Value,
+                Value = scoreForTarget.Value,
                 TargetNumber = i,
                 MaxValue = maxValue,
-            };
+            });
             i++;
-
-            result.ArrowScores.Add(arrowScore);
         }
-
-        var position = getPlayerPosition(managedEvent, participant.ID);
-
-        result.Place = position;
-        result.EventID = managedEvent.ID;
-        result.UserID = participant.ID;
 
         return Ok(result);
     }
@@ -411,29 +410,29 @@ public class ArcheryController : Controller
         });
     }
 
-    [HttpPost, Authorize]
-    [Route("getUsersByName")]
-    public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByEventAndNickRequest request)
-    {
-        var participants = (await _context.Events.FindAsync(request.EventID))?.ArcheryEventParticipant;
-
-        Dictionary<string, string> returnUsers = new Dictionary<string, string>();
-
-        if (participants != null)
-        {
-            foreach (var user in participants)
-            {
-                if (user.ParticipantID != null && user.Participant.ApplicationUser != null)
-                    returnUsers.Add(user.Participant.NickName, user.Participant.ApplicationUser.Id ?? "");
-            }
-        }
-
-
-        return Ok(new UserListResponse()
-        {
-            Users = returnUsers
-        });
-    }
+    // [HttpPost, Authorize]
+    // [Route("getUsersByName")]
+    // public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByEventAndNickRequest request)
+    // {
+    //     var participants = (await _context.Events.FindAsync(request.EventID))?.ArcheryEventParticipant;
+    //
+    //     Dictionary<string, string> returnUsers = new Dictionary<string, string>();
+    //
+    //     if (participants != null)
+    //     {
+    //         foreach (var user in participants)
+    //         {
+    //             if (user.ParticipantID != null && user.Participant.ApplicationUser != null)
+    //                 returnUsers.Add(user.Participant.NickName, user.Participant.ApplicationUser.Id ?? "");
+    //         }
+    //     }
+    //
+    //
+    //     return Ok(new UserListResponse()
+    //     {
+    //         Users = returnUsers
+    //     });
+    // }
 
     [HttpPost]
     [Route("getUserInfo")]

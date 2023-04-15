@@ -153,32 +153,150 @@ public class ArcheryController : Controller
     }
 
     [HttpPut, Authorize]
-    [Route("addScore")]
-    public async Task<ActionResult<BooleanResponse>> AddScore(AddScoreRequest request)
+    [Route("addScores")]
+    public async Task<ActionResult<BooleanResponse>> AddScores(AddScoresToTargetRequest request)
     {
-        var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.ID == request.ParticipantID);
-        if (managedParticipant == null)
+        if (request.Scores.Any())
         {
-            return BadRequest("Participant not found");
+            foreach (var addScore in request.Scores)
+            {
+                var managedParticipant =
+                    await _context.Participants.SingleOrDefaultAsync(p => p.NickName == addScore.Nickname);
+
+                if (managedParticipant == null)
+                {
+                    continue;
+                }
+
+                Score score = new Score()
+                {
+                    Participant = managedParticipant,
+                    TargetID = request.TargetID,
+                    Value = addScore.Value,
+                    Position = addScore.Position
+                };
+
+                _context.Scores.Add(score);
+            }
         }
-
-        Score score = new Score()
-        {
-            Participant = managedParticipant,
-            TargetID = request.TargetID,
-            Value = request.Value,
-            Position = request.Position
-        };
-
-        _context.Scores.Add(score);
 
         return Ok(new BooleanResponse()
         {
             Boolean = true
         });
     }
-    
-    // public async Task<>
+
+    public async Task<ActionResult<ScoresResponse>> GetScoresForEvent(GetScoresForEventRequest request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+        var authController = new AuthController(_userManager, _context, _tokenService);
+        var responses = new List<ScorePerUserResponse>();
+
+        foreach (var participant in managedEvent.Participants)
+        {
+            var scoresForTarget = _context.Scores.Where(s =>
+                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID);
+
+            var participantScores = scoresForTarget.Where(s => s.ParticipantID == participant.ID);
+            var allScore = participantScores.Sum(s => s.Value);
+            var response = new ScorePerUserResponse()
+            {
+                UserID = participant.ID,
+                UserName = participant.NickName ?? "default",
+                Value = allScore,
+                Base64Picture = participant.ApplicationUser?.Base64Picture ??
+                                authController.getProfilePicture(participant.FirstName, participant.LastName),
+            };
+            responses.Add(response);
+        }
+
+        int i = 1;
+        foreach (var response in responses.OrderByDescending(r => r.Value))
+        {
+            response.Place = i;
+            i++;
+        }
+
+        return Ok(new ScoresResponse()
+        {
+            Scores = responses
+        });
+    }
+
+    private int getPlayerPosition(ArcheryEvent managedEvent, int participantID)
+    {
+        var responses = new Dictionary<int, int>();
+
+
+        foreach (var participant in managedEvent.Participants)
+        {
+            var scoresForTarget = _context.Scores.Where(s =>
+                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID);
+
+            var participantScores = scoresForTarget.Where(s => s.ParticipantID == participant.ID);
+            var allScore = participantScores.Sum(s => s.Value);
+            responses.Add(participant.ID, allScore);
+        }
+
+        int i = 1;
+        foreach (var response in responses.OrderByDescending(r => r.Value))
+        {
+            if (response.Key == participantID) return i;
+            i++;
+        }
+
+        return i;
+    }
+
+    public async Task<ActionResult<IndividualScoreResponse>> GetScoresForUser(GetScoresForUserRequest request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+        var participant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == request.ParticipantName);
+        if (participant == null)
+        {
+            return BadRequest("No Participant found");
+        }
+
+        var result = new IndividualScoreResponse();
+
+        int i = 1;
+        foreach (var target in _context.Targets.Where(t => t.EventID == managedEvent.ID).OrderBy(t => t.ID))
+        {
+            var scoreForTarget = _context.Scores.SingleOrDefaultAsync(s =>
+                s.TargetID == target.ID && s.Participant.NickName == request.ParticipantName);
+
+            if (scoreForTarget.Result == null) continue;
+
+            var maxValue = 20; //TODO: maybe change this to pfeilwertung idk man I don't care
+            var arrowScore = new ScorePerArrowResponse()
+            {
+                Value = scoreForTarget.Result.Value,
+                TargetNumber = i,
+                MaxValue = maxValue,
+            };
+            i++;
+
+            result.ArrowScores.Add(arrowScore);
+        }
+
+        var position = getPlayerPosition(managedEvent, participant.ID);
+
+        result.Place = position;
+        result.EventID = managedEvent.ID;
+        result.UserID = participant.ID;
+
+        return Ok(result);
+    }
 
     [HttpPost, Authorize]
     [Route("getAllEvents")]

@@ -17,7 +17,7 @@ public class EventsResponse
     public List<EventResponse> Events { get; set; }
 }
 
-public abstract class ScorePerArrowResponse
+public class ScorePerArrowResponse
 {
     public int TargetNumber { get; set; }
     public int Value { get; set; }
@@ -32,7 +32,7 @@ public class IndividualScoreResponse
     public List<ScorePerArrowResponse> ArrowScores { get; set; }
 }
 
-public abstract class ScorePerUserResponse
+public class ScorePerUserResponse
 {
     public int UserID { get; set; }
     public string UserName { get; set; }

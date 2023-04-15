@@ -36,19 +36,13 @@ public class AuthController : ControllerBase
         return base64;
     }
 
-    [HttpPost]
-    [Route("register")]
-    public async Task<IActionResult> Register(RegistrationRequest request)
+    public string getProfilePicture(string firstname, string lastname)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         string base64String = "";
+
         using (HttpClient client = new HttpClient())
         {
-            var name = request.FirstName + " " + request.LastName;
+            var name = firstname + " " + lastname;
             var random = new Random();
             var color1 = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9";
             var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
@@ -59,6 +53,21 @@ public class AuthController : ControllerBase
             var stream = client.GetStreamAsync(requestURI);
             base64String = ConvertToBase64(stream.Result);
         }
+
+        return base64String;
+    }
+
+    [HttpPost]
+    [Route("register")]
+    public async Task<IActionResult> Register(RegistrationRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        string base64String = getProfilePicture(request.FirstName, request.LastName);
+
 
         var result = await _userManager.CreateAsync(
             new ApplicationUser()

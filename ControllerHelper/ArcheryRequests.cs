@@ -40,10 +40,11 @@ public class ParticipantRequest
 
 public class AddParticipantToEventRequest
 {
-    [Required] public int EventID { get; set; } 
+    [Required] public int EventID { get; set; }
 
     public List<ParticipantRequest> Participants { get; set; }
 }
+
 public class GetUserInfoRequest
 {
     public string Email { get; set; }
@@ -56,10 +57,26 @@ public class GetUserByEventAndNickRequest
     [Required] public int EventID { get; set; }
 }
 
-public class AddScoreRequest
+public abstract class AddScore
 {
-    [Required] public int TargetID { get; set; }
-    [Required] public int ParticipantID { get; set; }
+    [Required] public string Nickname { get; set; }
     [Required] public int Value { get; set; }
     [Required] public int Position { get; set; }
+}
+
+public class AddScoresToTargetRequest
+{
+    [Required] public int TargetID { get; set; }
+    [Required] public List<AddScore> Scores { get; set; }
+}
+
+public class GetScoresForEventRequest
+{
+    [Required] public int EventID { get; set; }
+}
+
+public class GetScoresForUserRequest
+{
+    [Required] public int EventID { get; set; }
+    [Required] public string ParticipantName { get; set; }
 }

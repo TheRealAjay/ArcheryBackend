@@ -9,7 +9,19 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var policyName = "_allowCorsStuff";
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: policyName,
+        builder =>
+        {
+            builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
 builder.Services.AddDbContext<ArcheryContext>();
 builder.Services.AddScoped<TokenService, TokenService>();
 builder.Services.AddControllers();
@@ -72,6 +84,7 @@ builder.Services
     })
     .AddEntityFrameworkStores<ArcheryContext>();
 
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -80,7 +93,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors(policyName);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

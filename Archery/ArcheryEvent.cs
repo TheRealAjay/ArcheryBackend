@@ -24,6 +24,8 @@ public class ArcheryEvent
 
     public TimeOnly Time { get; set; }
 
+    public int ArrowValue { get; set; }
+
     // /** HasOne Relation to User */
     // [ForeignKey(name: "ApplicationUser")]
     // public int UserID { get; set; }
@@ -34,5 +36,5 @@ public class ArcheryEvent
     public List<Target>? Targets { get; set; }
 
     /** HasMany Relation to Participants */
-    public List<Participant>? Participants { get; set; }
+    public List<ArcheryEventParticipant> ArcheryEventParticipant { get; set; }
 }

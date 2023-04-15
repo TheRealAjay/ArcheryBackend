@@ -20,8 +20,9 @@ public class Participant
     public ApplicationUser? ApplicationUser { get; set; }
 
     /** HasMany Relation to Event */
-    public List<ArcheryEvent> Events { get; set; }
+    public List<ArcheryEventParticipant> ArcheryEventParticipant { get; set; }
 
     /** HasMany Relation to Scores */
     public List<Score>? Scores { get; set; }
+
 }

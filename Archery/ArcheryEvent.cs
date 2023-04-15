@@ -36,5 +36,5 @@ public class ArcheryEvent
     public List<Target>? Targets { get; set; }
 
     /** HasMany Relation to Participants */
-    public List<Participant>? Participants { get; set; }
+    public List<ArcheryEventParticipant> ArcheryEventParticipant { get; set; }
 }

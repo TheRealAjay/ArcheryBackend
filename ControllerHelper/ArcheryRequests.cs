@@ -57,7 +57,7 @@ public class GetUserByEventAndNickRequest
     [Required] public int EventID { get; set; }
 }
 
-public abstract class AddScore
+public class AddScore
 {
     [Required] public string Nickname { get; set; }
     [Required] public int Value { get; set; }
@@ -67,7 +67,7 @@ public abstract class AddScore
 public class AddScoresToTargetRequest
 {
     [Required] public int TargetID { get; set; }
-    [Required] public List<AddScore> Scores { get; set; }
+    public List<AddScore> Scores { get; set; }
 }
 
 public class GetScoresForEventRequest

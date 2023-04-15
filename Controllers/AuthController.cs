@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
         return base64;
     }
 
-    public string getProfilePicture(string firstname, string lastname)
+    private string getProfilePicture(string firstname, string lastname)
     {
         string base64String = "";
 

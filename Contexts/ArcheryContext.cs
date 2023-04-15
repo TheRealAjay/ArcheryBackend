@@ -11,6 +11,8 @@ public class ArcheryContext : DbContext
 
     public DbSet<ArcheryEvent> Events { get; set; }
     public DbSet<Participant> Participants { get; set; }
+    
+    public DbSet<ArcheryEventParticipant> ArcheryEventParticipant { get; set; }
     public DbSet<Score> Scores { get; set; }
     public DbSet<Target> Targets { get; set; }
     public DbSet<ApplicationUser> Users { get; set; }

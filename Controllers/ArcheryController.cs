@@ -81,7 +81,7 @@ public class ArcheryController : Controller
             Target target = new Target()
             {
                 Name = t.Value,
-                EventID = t.Key,
+                EventID = request.EventID,
             };
 
             _context.Targets.Attach(target);
@@ -126,15 +126,15 @@ public class ArcheryController : Controller
                     NickName = localNickName,
                     FirstName = localFirstName,
                     LastName = localLastName,
+                    ApplicationUser = null
                 };
                 newParticipant = true;
             }
 
-            managedParticipant.Events.Add(managedEvent);
 
             if (newParticipant)
             {
-                _context.Participants.Add(managedParticipant);
+                _context.Participants.Attach(managedParticipant);
             }
             else
             {
@@ -142,7 +142,21 @@ public class ArcheryController : Controller
             }
 
             await _context.SaveChangesAsync();
+
+            var dbEvent = await _context.Events.FindAsync(request.EventID);
+            var dbParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == localNickName);
+            var connection = new ArcheryEventParticipant()
+            {
+                EventID = dbEvent!.ID,
+                Event = dbEvent,
+                ParticipantID = dbParticipant!.ID,
+                Participant = dbParticipant
+            };
+            _context.ArcheryEventParticipant.Add(connection);
+
+            await _context.SaveChangesAsync();
         }
+
 
         return Ok(
             new ParticipantResponse()
@@ -156,28 +170,26 @@ public class ArcheryController : Controller
     [Route("addScores")]
     public async Task<ActionResult<BooleanResponse>> AddScores(AddScoresToTargetRequest request)
     {
-        if (request.Scores.Any())
+        foreach (var addScore in request.Scores)
         {
-            foreach (var addScore in request.Scores)
+            var managedParticipant =
+                await _context.Participants.SingleOrDefaultAsync(p => p.NickName == addScore.Nickname);
+
+            if (managedParticipant == null)
             {
-                var managedParticipant =
-                    await _context.Participants.SingleOrDefaultAsync(p => p.NickName == addScore.Nickname);
-
-                if (managedParticipant == null)
-                {
-                    continue;
-                }
-
-                Score score = new Score()
-                {
-                    Participant = managedParticipant,
-                    TargetID = request.TargetID,
-                    Value = addScore.Value,
-                    Position = addScore.Position
-                };
-
-                _context.Scores.Add(score);
+                continue;
             }
+
+            Score score = new Score()
+            {
+                ParticipantID = managedParticipant.ID,
+                TargetID = request.TargetID,
+                Value = addScore.Value,
+                Position = addScore.Position
+            };
+
+            _context.Scores.Attach(score);
+            await _context.SaveChangesAsync();
         }
 
         return Ok(new BooleanResponse()
@@ -186,6 +198,42 @@ public class ArcheryController : Controller
         });
     }
 
+    private static string ConvertToBase64(Stream stream)
+    {
+        byte[] bytes;
+        using (var memoryStream = new MemoryStream())
+        {
+            stream.CopyTo(memoryStream);
+            bytes = memoryStream.ToArray();
+        }
+
+        string base64 = Convert.ToBase64String(bytes);
+        return base64;
+    }
+
+    private string getProfilePicture(string firstname, string lastname)
+    {
+        string base64String = "";
+
+        using (HttpClient client = new HttpClient())
+        {
+            var name = firstname + " " + lastname;
+            var random = new Random();
+            var color1 = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9";
+            var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
+            var color3 = String.Format("#{0:X6}", random.Next(0x1000000));
+            string requestURI = "https://source.boringavatars.com/beam/120/" + name + "?colors=" + color1 + "," +
+                                color2 + "," + color3 + "";
+
+            var stream = client.GetStreamAsync(requestURI);
+            base64String = ConvertToBase64(stream.Result);
+        }
+
+        return base64String;
+    }
+
+    [HttpPost, Authorize]
+    [Route("getScoresForEvent")]
     public async Task<ActionResult<ScoresResponse>> GetScoresForEvent(GetScoresForEventRequest request)
     {
         var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
@@ -194,23 +242,26 @@ public class ArcheryController : Controller
             return BadRequest("No Event found");
         }
 
-        var authController = new AuthController(_userManager, _context, _tokenService);
         var responses = new List<ScorePerUserResponse>();
 
-        foreach (var participant in managedEvent.Participants)
+        foreach (var participant in managedEvent.ArcheryEventParticipant)
         {
             var scoresForTarget = _context.Scores.Where(s =>
-                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID);
+                s.ParticipantID == participant.ID && s.Target!.EventID == managedEvent.ID);
 
             var participantScores = scoresForTarget.Where(s => s.ParticipantID == participant.ID);
             var allScore = participantScores.Sum(s => s.Value);
+            Console.WriteLine(participant.Participant.NickName);
+            Console.WriteLine(allScore);
+            Console.WriteLine("------");
             var response = new ScorePerUserResponse()
             {
                 UserID = participant.ID,
-                UserName = participant.NickName ?? "default",
+                UserName = participant.Participant.NickName ?? "default",
                 Value = allScore,
-                Base64Picture = participant.ApplicationUser?.Base64Picture ??
-                                authController.getProfilePicture(participant.FirstName, participant.LastName),
+                Base64Picture = participant.Participant.ApplicationUser?.Base64Picture ??
+                                getProfilePicture(participant.Participant.FirstName!,
+                                    participant.Participant.LastName!),
             };
             responses.Add(response);
         }
@@ -233,7 +284,7 @@ public class ArcheryController : Controller
         var responses = new Dictionary<int, int>();
 
 
-        foreach (var participant in managedEvent.Participants)
+        foreach (var participant in managedEvent.ArcheryEventParticipant)
         {
             var scoresForTarget = _context.Scores.Where(s =>
                 s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID);
@@ -253,6 +304,8 @@ public class ArcheryController : Controller
         return i;
     }
 
+    [HttpPost, Authorize]
+    [Route("getScoresForUser")]
     public async Task<ActionResult<IndividualScoreResponse>> GetScoresForUser(GetScoresForUserRequest request)
     {
         var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
@@ -362,7 +415,7 @@ public class ArcheryController : Controller
     [Route("getUsersByName")]
     public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByEventAndNickRequest request)
     {
-        var participants = (await _context.Events.FindAsync(request.EventID))?.Participants;
+        var participants = (await _context.Events.FindAsync(request.EventID))?.ArcheryEventParticipant;
 
         Dictionary<string, string> returnUsers = new Dictionary<string, string>();
 
@@ -370,8 +423,8 @@ public class ArcheryController : Controller
         {
             foreach (var user in participants)
             {
-                if (user.NickName != null && user.ApplicationUser != null)
-                    returnUsers.Add(user.NickName, user.ApplicationUser.Id ?? "");
+                if (user.ParticipantID != null && user.Participant.ApplicationUser != null)
+                    returnUsers.Add(user.Participant.NickName, user.Participant.ApplicationUser.Id ?? "");
             }
         }
 

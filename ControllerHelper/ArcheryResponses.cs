@@ -41,6 +41,18 @@ public class ScorePerUserResponse
     public int Place { get; set; }
 }
 
+public class TargetInformation
+{
+    public int TargetID { get; set; }
+    public int TargetPos { get; set; }
+    public string TargetName { get; set; }
+}
+
+public class TargetResponse
+{
+    public List<TargetInformation> Targets { get; set; }
+}
+
 public class ScoresResponse
 {
     public List<ScorePerUserResponse> Scores { get; set; }

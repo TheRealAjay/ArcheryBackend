@@ -76,7 +76,7 @@ public class ArcheryController : Controller
             return BadRequest("Event not found");
         }
 
-        foreach (var t in request.Targets)
+        foreach (var t in request.Targets.OrderBy(t => t.Key))
         {
             Target target = new Target()
             {
@@ -198,6 +198,38 @@ public class ArcheryController : Controller
         });
     }
 
+    [HttpPost, Authorize]
+    [Route("getTargets")]
+    public async Task<ActionResult<TargetResponse>> GetTargets(GetScoresForEventRequest request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+        var targetList = new List<TargetInformation>();
+
+        var targets = _context.Targets.Where(t => t.EventID == managedEvent.ID).OrderBy(t => t.ID).ToList();
+
+        int i = 1;
+        foreach (var target in targets)
+        {
+            targetList.Add(new TargetInformation()
+            {
+                TargetID = target.ID,
+                TargetName = target.Name ?? "NaN",
+                TargetPos = i,
+            });
+            i++;
+        }
+
+        return Ok(new TargetResponse()
+        {
+            Targets = targetList
+        });
+    }
+
     private static string ConvertToBase64(Stream stream)
     {
         byte[] bytes;
@@ -283,7 +315,8 @@ public class ArcheryController : Controller
         var responses = new Dictionary<int, int>();
 
 
-        foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID).ToList())
+        foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID)
+                     .ToList())
         {
             var scoresForTarget = _context.Scores.Where(s =>
                 s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID).ToList();

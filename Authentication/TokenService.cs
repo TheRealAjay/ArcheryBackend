@@ -9,7 +9,7 @@ namespace ArcheryBackend.Authentication;
 
 public class TokenService
 {
-    private const int ExpirationMinutes = 30;
+    private const int ExpirationMinutes = 600;
 
     public string CreateToken(IdentityUser user)
     {

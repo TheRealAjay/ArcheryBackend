@@ -409,8 +409,8 @@ public class ArcheryController : Controller
             {
                 EventID = ev.ID,
                 IsActiveEvent = ev.Date.DayNumber == dayNumber,
-                EventName = ev.Name,
-                EventDesc = "None",
+                EventName = ev.Name ?? "NaN",
+                EventAddress = ev.Zip + " " + ev.City + ", " + ev.Street,
                 FormattedDate = ev.Date.Day + "." + ev.Date.Month + "." + ev.Date.Year,
                 FormattedTime = ev.Time.ToString()
             };

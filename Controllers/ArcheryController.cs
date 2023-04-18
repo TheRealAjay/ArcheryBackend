@@ -384,6 +384,57 @@ public class ArcheryController : Controller
     }
 
     [HttpPost, Authorize]
+    [Route("getParticipants")]
+    public async Task<ActionResult<ParticipantsResponse>> GetParticipants(GetScoresForEventRequest request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+        var participants = _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID).ToList();
+
+        List<ParticipantObj> list = new List<ParticipantObj>();
+
+        foreach (var participant in participants)
+        {
+            list.Add(new ParticipantObj()
+            {
+                FirstName = participant.Participant.FirstName,
+                LastName = participant.Participant.LastName,
+                NickName = participant.Participant.NickName
+            });
+        }
+
+        return Ok(new ParticipantsResponse()
+        {
+            Participants = list
+        });
+    }
+
+    [HttpPost, Authorize]
+    [Route("getEventInfo")]
+    public async Task<ActionResult<EventResponse>> getEventInfo(GetScoresForEventRequest request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+
+        return Ok(new EventResponse()
+        {
+            EventID = managedEvent.ID,
+            EventName = managedEvent.Name,
+            EventAddress = managedEvent.Zip + " " + managedEvent.City + ", " + managedEvent.Street,
+            FormattedDate = managedEvent.Date.Day + "." + managedEvent.Date.Month + "." + managedEvent.Date.Year,
+            FormattedTime = managedEvent.Time.ToString()
+        });
+    }
+
+    [HttpPost, Authorize]
     [Route("getAllEvents")]
     public async Task<ActionResult<EventsResponse>> GetUpcomingEvents(GetEventsRequest request)
     {

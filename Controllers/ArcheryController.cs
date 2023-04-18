@@ -397,13 +397,16 @@ public class ArcheryController : Controller
 
         List<ParticipantObj> list = new List<ParticipantObj>();
 
-        foreach (var participant in participants)
+        foreach (var participantJoin in participants)
         {
+            var participant =
+                await _context.Participants.SingleOrDefaultAsync(p => p.ID == participantJoin.ParticipantID);
+
             list.Add(new ParticipantObj()
             {
-                FirstName = participant.Participant.FirstName,
-                LastName = participant.Participant.LastName,
-                NickName = participant.Participant.NickName
+                FirstName = participant.FirstName,
+                LastName = participant.LastName,
+                NickName = participant.NickName
             });
         }
 
@@ -494,29 +497,24 @@ public class ArcheryController : Controller
         });
     }
 
-    // [HttpPost, Authorize]
-    // [Route("getUsersByName")]
-    // public async Task<ActionResult<UserListResponse>> GetUsersByName(GetUserByEventAndNickRequest request)
-    // {
-    //     var participants = (await _context.Events.FindAsync(request.EventID))?.ArcheryEventParticipant;
-    //
-    //     Dictionary<string, string> returnUsers = new Dictionary<string, string>();
-    //
-    //     if (participants != null)
-    //     {
-    //         foreach (var user in participants)
-    //         {
-    //             if (user.ParticipantID != null && user.Participant.ApplicationUser != null)
-    //                 returnUsers.Add(user.Participant.NickName, user.Participant.ApplicationUser.Id ?? "");
-    //         }
-    //     }
-    //
-    //
-    //     return Ok(new UserListResponse()
-    //     {
-    //         Users = returnUsers
-    //     });
-    // }
+    [HttpPost, Authorize]
+    [Route("finishEvent")]
+    public async Task<ActionResult<BooleanResponse>> FinishEvent(ParticipantResponse request)
+    {
+        var managedEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == request.EventID);
+        if (managedEvent == null)
+        {
+            return BadRequest("No Event found");
+        }
+
+        managedEvent.isFinished = true;
+        await _context.SaveChangesAsync();
+
+        return Ok(new BooleanResponse()
+        {
+            Boolean = true
+        });
+    }
 
     [HttpPost]
     [Route("getUserInfo")]

@@ -26,9 +26,7 @@ public class ArcheryEvent
 
     public int ArrowValue { get; set; }
 
-    // /** HasOne Relation to User */
-    // [ForeignKey(name: "ApplicationUser")]
-    // public int UserID { get; set; }
+    public bool isFinished { get; set; }
 
     public ApplicationUser? User { get; set; }
 

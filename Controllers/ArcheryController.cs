@@ -455,13 +455,13 @@ public class ArcheryController : Controller
         {
             if (ev.Date.DayNumber < dayNumber && request.OldData == false)
                 continue;
-
-            if (ev.Date.DayNumber >= dayNumber && request.OldData)
-                continue;
             
             if (ev.isFinished && request.OldData == false)
                 continue;
 
+            if (ev.Date.DayNumber >= dayNumber && request.OldData && ev.isFinished == false)
+                continue;
+            
             EventResponse listItem = new EventResponse
             {
                 EventID = ev.ID,

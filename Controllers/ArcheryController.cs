@@ -448,20 +448,29 @@ public class ArcheryController : Controller
         }
 
         int dayNumber = DateOnly.FromDateTime(DateTime.Now).DayNumber;
-        var events = _context.Events.Where((e) => e.User.Id == managedUser.Id).OrderBy(e => e.Date);
+        var events = _context.Events.Where((e) => e.User.Id == managedUser.Id);
+        if (request.OldData)
+        {
+            events = events.OrderByDescending(e => e.Date);
+        }
+        else
+        {
+            events = events.OrderBy(e => e.Date);
+        }
+
         var list = new List<EventResponse>();
 
         foreach (var ev in events)
         {
             if (ev.Date.DayNumber < dayNumber && request.OldData == false)
                 continue;
-            
+
             if (ev.isFinished && request.OldData == false)
                 continue;
 
             if (ev.Date.DayNumber >= dayNumber && request.OldData && ev.isFinished == false)
                 continue;
-            
+
             EventResponse listItem = new EventResponse
             {
                 EventID = ev.ID,
@@ -516,6 +525,26 @@ public class ArcheryController : Controller
         return Ok(new BooleanResponse()
         {
             Boolean = true
+        });
+    }
+
+    [HttpPost, Authorize]
+    [Route("getUserData")]
+    public async Task<ActionResult<UserDataResponse>> GetUserData(GetEventsRequest request)
+    {
+        var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.UserEmail);
+        if (managedUser == null)
+        {
+            return BadRequest("User not found");
+        }
+
+        return Ok(new UserDataResponse()
+        {
+            FirstName = managedUser.FirstName,
+            LastName = managedUser.LastName,
+            NickName = managedUser.UserName,
+            UsernameChanges = managedUser.UsernameChangeLimit,
+            Base64Img = managedUser.Base64Picture
         });
     }
 

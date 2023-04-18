@@ -62,6 +62,7 @@ public class ParticipantResponse
 {
     public int EventID { get; set; }
 }
+
 public class ParticipantsResponse
 {
     public List<ParticipantObj> Participants { get; set; }
@@ -72,6 +73,15 @@ public class ParticipantObj
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string NickName { get; set; }
+}
+
+public class UserDataResponse
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? NickName { get; set; }
+    public string Base64Img { get; set; }
+    public int UsernameChanges { get; set; }
 }
 
 public class UserListResponse

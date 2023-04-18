@@ -458,6 +458,9 @@ public class ArcheryController : Controller
 
             if (ev.Date.DayNumber >= dayNumber && request.OldData)
                 continue;
+            
+            if (ev.isFinished && request.OldData == false)
+                continue;
 
             EventResponse listItem = new EventResponse
             {

@@ -46,6 +46,7 @@ public class TargetInformation
     public int TargetID { get; set; }
     public int TargetPos { get; set; }
     public string TargetName { get; set; }
+    public bool HasScores { get; set; }
 }
 
 public class TargetResponse

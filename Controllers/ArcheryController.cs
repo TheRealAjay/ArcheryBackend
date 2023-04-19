@@ -215,11 +215,13 @@ public class ArcheryController : Controller
         int i = 1;
         foreach (var target in targets)
         {
+            var scores = _context.Scores.Any(s => s.TargetID == target.ID);
             targetList.Add(new TargetInformation()
             {
                 TargetID = target.ID,
                 TargetName = target.Name ?? "NaN",
                 TargetPos = i,
+                HasScores = scores
             });
             i++;
         }

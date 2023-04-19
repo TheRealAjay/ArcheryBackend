@@ -324,14 +324,15 @@ public class ArcheryController : Controller
     {
         var responses = new Dictionary<int, int>();
 
-        foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID)
-                     .ToList())
+        foreach (var eventParticipant in _context.ArcheryEventParticipant
+                     .Where(aep => aep.EventID == managedEvent.ID).ToList())
         {
             var scoresForTarget = _context.Scores.Where(
-                s => s.ParticipantID == participant.ID &&
+                s => s.ParticipantID == eventParticipant.ParticipantID &&
                      s.Target.EventID == managedEvent.ID).ToList();
+            
             var allScore = scoresForTarget.Sum(s => s.Value);
-            responses.Add(participant.ID, allScore);
+            responses.Add(eventParticipant.ParticipantID, allScore);
         }
 
         int i = 1;

@@ -48,7 +48,7 @@ public class AuthController : ControllerBase
             var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
             var color3 = String.Format("#{0:X6}", random.Next(0x1000000));
             string requestURI = "https://source.boringavatars.com/beam/120/" + name + "?colors=" + color1 + "," +
-                                color2 + "," + color3 + "";
+                                color2 + "," + color3 + ""; 
 
             var stream = client.GetStreamAsync(requestURI);
             base64String = ConvertToBase64(stream.Result);

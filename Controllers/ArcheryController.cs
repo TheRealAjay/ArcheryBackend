@@ -108,12 +108,16 @@ public class ArcheryController : Controller
             var localNickName = participant.Nickname;
             var localFirstName = participant.FirstName;
             var localLastName = participant.LastName;
+            string? userId = null;
 
             if (participant.UserEmail != null)
             {
                 var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Email == participant.UserEmail);
                 if (managedUser != null)
+                {
                     localNickName = managedUser.UserName;
+                    userId = managedUser.Id;
+                }
             }
 
             var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.NickName == localNickName);
@@ -126,7 +130,7 @@ public class ArcheryController : Controller
                     NickName = localNickName,
                     FirstName = localFirstName,
                     LastName = localLastName,
-                    ApplicationUser = null
+                    UserID = userId
                 };
                 newParticipant = true;
             }
@@ -292,9 +296,13 @@ public class ArcheryController : Controller
                 UserID = connection.ParticipantID,
                 UserName = connection.Participant.NickName ?? "default",
                 Value = allScore,
-                Base64Picture = connection.Participant.ApplicationUser?.Base64Picture ??
-                                getProfilePicture(connection.Participant.FirstName!,
-                                    connection.Participant.LastName!),
+                Base64Picture =
+                    "data:image/svg+xml;base64," +
+                    (
+                        connection.Participant.User?.Base64Picture ??
+                        getProfilePicture(connection.Participant.FirstName!,
+                            connection.Participant.LastName!)
+                    )
             };
             responses.Add(response);
         }
@@ -315,7 +323,6 @@ public class ArcheryController : Controller
     private int GetPlayerPosition(ArcheryEvent managedEvent, int participantId)
     {
         var responses = new Dictionary<int, int>();
-
 
         foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID)
                      .ToList())
@@ -366,7 +373,7 @@ public class ArcheryController : Controller
         int i = 1;
         foreach (var target in targets)
         {
-            var scoreForTarget = await _context.Scores.SingleOrDefaultAsync(s =>
+            var scoreForTarget = await _context.Scores.FirstOrDefaultAsync(s =>
                 s.TargetID == target.ID && s.Participant.NickName == request.ParticipantName);
 
             if (scoreForTarget == null) continue;
@@ -450,19 +457,35 @@ public class ArcheryController : Controller
         }
 
         int dayNumber = DateOnly.FromDateTime(DateTime.Now).DayNumber;
-        var events = _context.Events.Where((e) => e.User.Id == managedUser.Id);
+        var events = _context.Events.Where((e) => e.User.Id == managedUser.Id).ToList();
+        
         if (request.OldData)
         {
-            events = events.OrderByDescending(e => e.Date);
+            var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.UserID == managedUser.Id);
+            if (managedParticipant != null)
+            {
+                var managedEventParticipant =
+                    _context.ArcheryEventParticipant.Where(aep => aep.ParticipantID == managedParticipant.ID).ToList();
+                foreach (var mep in managedEventParticipant)
+                {
+                    var guestEvent = await _context.Events.SingleOrDefaultAsync(e => e.ID == mep.EventID);
+                    if (guestEvent != null)
+                    {
+                        events.Add(guestEvent);
+                    }
+                }
+            }
+
+            events = events.OrderByDescending(e => e.Date).ToList();
         }
         else
         {
-            events = events.OrderBy(e => e.Date);
+            events = events.OrderBy(e => e.Date).ToList();
         }
 
         var list = new List<EventResponse>();
 
-        foreach (var ev in events)
+        foreach (var ev in events.Distinct().ToList())
         {
             if (ev.Date.DayNumber < dayNumber && request.OldData == false)
                 continue;
@@ -547,6 +570,26 @@ public class ArcheryController : Controller
             NickName = managedUser.UserName,
             UsernameChanges = managedUser.UsernameChangeLimit,
             Base64Img = managedUser.Base64Picture
+        });
+    }
+
+    [HttpPost, Authorize]
+    [Route("getParticipantData")]
+    public async Task<ActionResult<ParticipantDataResponse>> GetParticipantData(GetParticipantDataRequest request)
+    {
+        var managedParticipant = await _context.Participants.FindAsync(request.ParticipantID);
+        if (managedParticipant == null)
+        {
+            return BadRequest("User not found");
+        }
+
+        var managedUser = await _context.Users.SingleOrDefaultAsync(u => u.Id == managedParticipant.UserID);
+
+        return Ok(new ParticipantDataResponse()
+        {
+            FirstName = managedParticipant.FirstName,
+            LastName = managedParticipant.LastName,
+            UserEmail = managedUser?.Email ?? null,
         });
     }
 

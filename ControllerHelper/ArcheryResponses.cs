@@ -85,6 +85,13 @@ public class UserDataResponse
     public int UsernameChanges { get; set; }
 }
 
+public class ParticipantDataResponse
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? UserEmail { get; set; }
+}
+
 public class UserListResponse
 {
     public Dictionary<string, string> Users { get; set; }

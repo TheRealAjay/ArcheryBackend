@@ -80,3 +80,7 @@ public class GetScoresForUserRequest
     [Required] public int EventID { get; set; }
     [Required] public string ParticipantName { get; set; }
 }
+public class GetParticipantDataRequest
+{
+    [Required] public int ParticipantID { get; set; }
+}

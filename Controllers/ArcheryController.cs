@@ -327,14 +327,15 @@ public class ArcheryController : Controller
         foreach (var participant in _context.ArcheryEventParticipant.Where(aep => aep.EventID == managedEvent.ID)
                      .ToList())
         {
-            var scoresForTarget = _context.Scores.Where(s =>
-                s.ParticipantID == participant.ID && s.Target.EventID == managedEvent.ID).ToList();
+            var scoresForTarget = _context.Scores.Where(
+                s => s.ParticipantID == participant.ID &&
+                     s.Target.EventID == managedEvent.ID).ToList();
             var allScore = scoresForTarget.Sum(s => s.Value);
             responses.Add(participant.ID, allScore);
         }
 
         int i = 1;
-        foreach (var response in responses.OrderByDescending(r => r.Value))
+        foreach (var response in responses.Distinct().OrderByDescending(r => r.Value).ToList())
         {
             if (response.Key == participantId) return i;
             i++;

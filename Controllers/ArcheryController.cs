@@ -458,7 +458,7 @@ public class ArcheryController : Controller
 
         int dayNumber = DateOnly.FromDateTime(DateTime.Now).DayNumber;
         var events = _context.Events.Where((e) => e.User.Id == managedUser.Id).ToList();
-        
+
         if (request.OldData)
         {
             var managedParticipant = await _context.Participants.SingleOrDefaultAsync(p => p.UserID == managedUser.Id);
@@ -519,13 +519,21 @@ public class ArcheryController : Controller
     [Route("getUsersByEmail")]
     public async Task<ActionResult<UserListResponse>> GetUsersByEmail(GetUserInfoRequest request)
     {
-        var users = from u in _context.Users where u.Email.Contains(request.Email) select u;
+        // var users = from u in _context.Users where u.Email.Contains(request.Email) select u;
 
-        Dictionary<string, string> returnUsers = new Dictionary<string, string>();
+        var users = _context.Users.Where(u => u.Email!.Contains(request.Email));
+        List<UserDataResponse> returnUsers = new List<UserDataResponse>();
 
         foreach (var user in users)
         {
-            returnUsers.Add(user.Id, user.UserName ?? "");
+            returnUsers.Add(new UserDataResponse()
+            {
+                NickName = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Base64Img = user.Base64Picture,
+                UserEmail = user.Email ?? "",
+            });
         }
 
         return Ok(new UserListResponse()
@@ -568,8 +576,8 @@ public class ArcheryController : Controller
             FirstName = managedUser.FirstName,
             LastName = managedUser.LastName,
             NickName = managedUser.UserName,
-            UsernameChanges = managedUser.UsernameChangeLimit,
-            Base64Img = managedUser.Base64Picture
+            Base64Img = managedUser.Base64Picture,
+            UserEmail = managedUser.Email ?? "",
         });
     }
 

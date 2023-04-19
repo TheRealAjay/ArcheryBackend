@@ -82,7 +82,8 @@ public class UserDataResponse
     public string? LastName { get; set; }
     public string? NickName { get; set; }
     public string Base64Img { get; set; }
-    public int UsernameChanges { get; set; }
+
+    public string UserEmail { get; set; }
 }
 
 public class ParticipantDataResponse
@@ -94,7 +95,7 @@ public class ParticipantDataResponse
 
 public class UserListResponse
 {
-    public Dictionary<string, string> Users { get; set; }
+    public List<UserDataResponse> Users { get; set; }
 }
 
 public class BooleanResponse

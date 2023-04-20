@@ -9,6 +9,7 @@ public class EventResponse
     public string FormattedDate { get; set; } = null!;
     public string FormattedTime { get; set; } = null!;
     public bool IsActiveEvent { get; set; } = false;
+    public bool ScoringType { get; set; } = false;
     public int EventID { get; set; }
 }
 

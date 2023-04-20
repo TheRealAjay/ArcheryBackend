@@ -13,6 +13,8 @@ public class CreateEventRequest
     [Required] public string Date { get; set; } = null!;
     [Required] public string Time { get; set; } = null!;
     [Required] public int ArrowValue { get; set; } = 0;
+    
+    [Required] public bool ScoringType { get; set; } = false;
     [Required] public string UserEmail { get; set; } = null!;
 }
 

@@ -28,6 +28,8 @@ public class ArcheryEvent
 
     public bool isFinished { get; set; }
 
+    public bool ScoringType { get; set; }
+
     public ApplicationUser? User { get; set; }
 
     /** HasMany Relation to Targets */

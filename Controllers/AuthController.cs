@@ -44,9 +44,9 @@ public class AuthController : ControllerBase
         {
             var name = firstname + " " + lastname;
             var random = new Random();
-            var color1 = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9";
-            var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
-            var color3 = String.Format("#{0:X6}", random.Next(0x1000000));
+            var color1 = String.Format("{0:X6}", random.Next(0x1000000)); // = "#A197B9";
+            var color2 = String.Format("{0:X6}", random.Next(0x1000000));
+            var color3 = String.Format("{0:X6}", random.Next(0x1000000));
             string requestURI = "https://source.boringavatars.com/beam/120/" + name + "?colors=" + color1 + "," +
                                 color2 + "," + color3 + ""; 
 

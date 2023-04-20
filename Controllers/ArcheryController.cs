@@ -257,9 +257,9 @@ public class ArcheryController : Controller
         {
             var name = firstname + " " + lastname;
             var random = new Random();
-            var color1 = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9";
-            var color2 = String.Format("#{0:X6}", random.Next(0x1000000));
-            var color3 = String.Format("#{0:X6}", random.Next(0x1000000));
+            var color1 = String.Format("{0:X6}", random.Next(0x1000000)); // = "#A197B9";
+            var color2 = String.Format("{0:X6}", random.Next(0x1000000));
+            var color3 = String.Format("{0:X6}", random.Next(0x1000000));
             string requestURI = "https://source.boringavatars.com/beam/120/" + name + "?colors=" + color1 + "," +
                                 color2 + "," + color3 + "";
 
@@ -533,7 +533,7 @@ public class ArcheryController : Controller
                 NickName = user.UserName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Base64Img = user.Base64Picture,
+                Base64Img = "data:image/svg+xml;base64," + user.Base64Picture,
                 UserEmail = user.Email ?? "",
             });
         }
@@ -578,7 +578,7 @@ public class ArcheryController : Controller
             FirstName = managedUser.FirstName,
             LastName = managedUser.LastName,
             NickName = managedUser.UserName,
-            Base64Img = managedUser.Base64Picture,
+            Base64Img =  "data:image/svg+xml;base64," + managedUser.Base64Picture,
             UserEmail = managedUser.Email ?? "",
         });
     }

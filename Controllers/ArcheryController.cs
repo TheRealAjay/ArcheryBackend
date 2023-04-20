@@ -520,7 +520,7 @@ public class ArcheryController : Controller
     {
         // var users = from u in _context.Users where u.Email.Contains(request.Email) select u;
 
-        var users = _context.Users.Where(u => u.Email!.Contains(request.Email));
+        var users = _context.Users.Where(u => u.NormalizedEmail!.Contains(request.Email.ToUpper()));
         List<UserDataResponse> returnUsers = new List<UserDataResponse>();
 
         foreach (var user in users)
